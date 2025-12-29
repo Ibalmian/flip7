@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flip7 – Marcador</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<!-- PWA / Iconos de la aplicación -->
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#14532d">
+
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192x192.png">
+
+<link rel="apple-touch-icon" href="icon-192x192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Flip7">
+
+
+<style>
+body{
+  overscroll-behavior-y: contain;
+  touch-action: manipulation;
+  font-family:'Inter',sans-serif;
+  background:radial-gradient(circle at top,#14532d,#052e16);
+  color:#f9fafb
+}
+.player-card{
+  background:linear-gradient(145deg,#ffffff,#f3f4f6);
+  border-radius:18px;
+  padding:12px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow:0 6px 14px rgba(0,0,0,.2);
+}
+.avatar{
+  width:48px;height:48px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:1.2rem;
+  color:white;
+}
+.avatar-lg{
+  width:64px;height:64px;
+  font-size:1.6rem;
+}
+.flip-title{
+  font-weight:800;
+  color:#facc15;
+  -webkit-text-stroke:2px #000;
+  text-shadow:2px 2px 0 #000;
+  display:flex;align-items:flex-end
+}
+.flip-seven{font-size:3.5rem;margin-left:2px}
+.modal-card{
+  background:linear-gradient(145deg,#064e3b,#022c22);
+  border:3px solid #facc15;
+  box-shadow:0 20px 40px rgba(0,0,0,.6);
+}
+.carta{
+  width:46px;height:68px;
+  border-radius:10px;
+  border:2px solid #9ca3af;
+  background:#fff;color:#111827;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;cursor:pointer;
+}
+input[type=checkbox]:checked + .carta{
+  background:#2563eb;color:white;border-color:#1d4ed8;
+}
+.carta-x2{
+  width:72px;height:72px;
+  background:#7c3aed;color:white;
+  font-size:1.4rem;border-color:#5b21b6;
+}
+.section{
+  background:#f9fafb;
+  color:#111827;
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:12px;
+}
+.section-title{
+  font-weight:700;
+  margin-bottom:6px;
+}
+.total-box{
+  background:#111827;
+  color:#facc15;
+  border-radius:14px;
+  padding:14px;
+  text-align:center;
+  font-size:1.6rem;
+  font-weight:800;
+}
+.bottom-bar{
+  position:sticky;
+  bottom:0;
+  background:rgba(6,78,59,.85);
+  backdrop-filter:blur(8px);
+  padding:12px;
+  display:flex;
+  gap:12px;
+  justify-content:center;
+}
+</style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center p-3">
+
+<header class="w-full max-w-6xl flex justify-between items-center mb-4">
+  <button onclick="abrirReglas()" class="text-2xl">❓</button>
+  <h1 class="flip-title text-3xl sm:text-4xl">Flip<span class="flip-seven">7</span></h1>
+  <div></div>
+</header>
+
+<!-- PANTALLA JUGADORES -->
+<section id="pantallaJugadores"
+ class="bg-white text-gray-900 rounded-xl p-4 shadow w-full max-w-md">
+
+<h2 class="text-xl font-bold text-center mb-4">Jugadores</h2>
+
+<div class="flex gap-2 mb-4">
+  <input id="nombreJugador" class="flex-1 p-2 border rounded"
+   placeholder="Nombre del jugador">
+  <button onclick="agregarJugador()"
+   class="px-4 py-2 bg-green-600 text-white rounded font-bold">+</button>
+</div>
+
+<div id="listaJugadores" class="space-y-2 mb-4"></div>
+
+<button onclick="iniciarPartida()"
+ class="w-full py-3 bg-blue-600 text-white rounded font-bold">
+Iniciar partida
+</button>
+
+<button onclick="limpiarTodo()"
+ class="w-full py-2 mt-2 bg-gray-300 rounded">
+Limpiar todo
+</button>
+</section>
+
+<!-- PANTALLA JUEGO -->
+<section id="pantallaJuego" class="hidden w-full max-w-6xl text-white">
+<h2 class="text-2xl font-bold text-center mb-4">
+Ronda <span id="rondaActual">1</span>
+</h2>
+
+<div id="contenedorJugadores"
+ class="flex flex-wrap gap-4 justify-center mb-6"></div>
+
+<div class="bottom-bar rounded-xl max-w-md mx-auto">
+<button onclick="siguienteRonda()"
+ class="flex-1 py-3 bg-blue-600 rounded-full font-bold">
+Siguiente ronda
+</button>
+<button onclick="salirJuego()"
+ class="flex-1 py-3 bg-red-600 rounded-full font-bold">
+Salir
+</button>
+</div>
+</section>
+
+<!-- MODAL REGLAS -->
+<div id="modalReglas"
+ class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-3">
+<div class="modal-card rounded-2xl p-4 max-w-md w-full text-yellow-100">
+<h3 class="text-2xl font-extrabold text-center mb-3">📘 Reglas del Flip 7</h3>
+<p class="text-sm mb-3">
+Este marcador está diseñado para que tú te enfoques en lo importante:
+<b>jugar, reírte y reclamar puntos como campeón</b> 😎
+</p>
+<ul class="space-y-2 text-sm">
+<li>🃏 Se juega entre <b>3 y 18 jugadores</b>.</li>
+<li>🎴 En cada ronda selecciona las cartas obtenidas.</li>
+<li>🎉 7 cartas = <b>Flip7</b> (+15).</li>
+<li>✖️ El x2 aplica solo a cartas.</li>
+<li>⭐ Extras se suman al final.</li>
+<li>🏆 Gana quien llegue a <b>200 puntos</b>.</li>
+</ul>
+<button onclick="cerrarReglas()"
+ class="mt-4 w-full py-2 bg-yellow-400 text-black rounded font-bold">
+¡Entendido!
+</button>
+</div>
+</div>
+
+<!-- MODAL RESULTADOS FINALES -->
+<div id="modalFinal"
+ class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-3">
+
+  <div class="modal-card rounded-2xl p-5 max-w-md w-full text-yellow-100">
+    <h3 class="text-3xl font-extrabold text-center mb-4">🏆 Resultados finales</h3>
+
+    <div id="tablaFinal" class="space-y-3 mb-5"></div>
+
+    <button onclick="cerrarFinal()"
+     class="w-full py-3 bg-yellow-400 text-black rounded font-extrabold">
+     Volver al inicio
+    </button>
+  </div>
+
+</div>
+
+<!-- MODAL PUNTOS -->
+<div id="modalPuntos"
+ class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-start justify-center z-50 p-3 overflow-y-auto">
+
+<div class="modal-card rounded-2xl p-4 max-w-md w-full my-6">
+
+
+<div class="flex flex-col items-center mb-4">
+<div id="modalAvatar" class="avatar avatar-lg mb-2"></div>
+<h3 id="modalJugador" class="text-2xl font-bold text-yellow-300"></h3>
+</div>
+
+<div class="section">
+<div class="section-title">🃏 Cartas obtenidas</div>
+<div id="cartasModal" class="grid grid-cols-4 gap-2"></div>
+<div id="modalFlip7"
+ class="hidden mt-2 text-center text-green-700 font-extrabold">
+🎉 Flip7 conseguido (+15)
+</div>
+</div>
+
+<div class="section">
+<div class="section-title">➕ Puntos adicionales</div>
+<input id="modalExtra" type="number" min="0" step="1"
+ class="w-full border rounded p-2 text-center font-bold"
+ placeholder="0">
+
+
+</div>
+
+<div class="section">
+<div class="section-title">✖️ Multiplicador</div>
+<label>
+<input type="checkbox" id="modalX2" class="hidden">
+<div class="carta carta-x2 mx-auto">✖2</div>
+</label>
+</div>
+
+<div class="total-box mb-4">
+Total de la ronda<br>
+<span id="modalTotal">0</span>
+</div>
+
+<div class="flex gap-2">
+<button onclick="cerrarModal()"
+ class="flex-1 py-2 bg-gray-300 rounded font-bold">Cancelar</button>
+<button onclick="guardarModal()"
+ class="flex-1 py-2 bg-blue-600 text-white rounded font-bold">Guardar</button>
+</div>
+
+</div>
+</div>
+
+<script>
+let jugadores=[], ronda=1, jugadorActual=null, seleccionadas=[];
+const colores=['#2563eb','#dc2626','#16a34a','#7c3aed','#ea580c','#0891b2'];
+
+function agregarJugador(){
+ const i=document.getElementById('nombreJugador');
+ if(!i.value.trim())return;
+ jugadores.push({nombre:i.value.trim(),total:0});
+ i.value=''; renderLista();
+}
+function renderLista(){
+ const c=document.getElementById('listaJugadores'); c.innerHTML='';
+ jugadores.forEach((j,i)=>{
+ const color=colores[i%colores.length];
+ c.innerHTML+=`
+ <div class="player-card">
+ <div class="avatar" style="background:${color}">
+ ${j.nombre[0].toUpperCase()}
+ </div>
+ <div class="flex-1 font-semibold">${j.nombre}</div>
+ <button onclick="editarJugador(${i})">✏️</button>
+ <button onclick="eliminarJugador(${i})">🗑️</button>
+ </div>`;
+ });
+}
+function editarJugador(i){
+ const n=prompt('Editar nombre', jugadores[i].nombre);
+ if(n && n.trim()){ jugadores[i].nombre=n.trim(); renderLista(); }
+}
+function eliminarJugador(i){
+ if(confirm('¿Eliminar jugador?')){
+ jugadores.splice(i,1); renderLista();
+ }
+}
+function iniciarPartida(){
+ if(jugadores.length<3) return alert('Mínimo 3 jugadores');
+ if(jugadores.length>18) return alert('Máximo 18 jugadores');
+ document.getElementById('pantallaJugadores').classList.add('hidden');
+ document.getElementById('pantallaJuego').classList.remove('hidden');
+ renderJuego();
+}
+function renderJuego(){
+ const c=document.getElementById('contenedorJugadores'); c.innerHTML='';
+ jugadores.forEach((j,i)=>{
+ const color=colores[i%colores.length];
+ c.innerHTML+=`
+ <div class="bg-white text-gray-900 p-4 rounded-xl w-64 shadow">
+ <div class="flex items-center gap-3 mb-3">
+ <div class="avatar" style="background:${color}">
+ ${j.nombre[0].toUpperCase()}
+ </div>
+ <b>${j.nombre}</b>
+ </div>
+ <button onclick="abrirModal(${i})"
+ class="w-full bg-blue-600 text-white py-2 rounded font-bold">
+ Capturar puntos
+ </button>
+ <div class="mt-2 text-sm">Total: <b>${j.total}</b></div>
+ </div>`;
+ });
+}
+function abrirModal(i){
+ jugadorActual=i; seleccionadas=[];
+ const j=jugadores[i];
+ const color=colores[i%colores.length];
+ document.getElementById('modalJugador').textContent=j.nombre;
+ const av=document.getElementById('modalAvatar');
+ av.style.background=color; av.textContent=j.nombre[0].toUpperCase();
+ document.getElementById('modalExtra').value=0;
+ document.getElementById('modalX2').checked=false;
+ document.getElementById('modalFlip7').classList.add('hidden');
+ const c=document.getElementById('cartasModal'); c.innerHTML='';
+ for(let n=0;n<=12;n++){
+ c.innerHTML+=`
+ <label>
+ <input type="checkbox" class="hidden" data-v="${n}" onchange="calcModal()">
+ <div class="carta">${n}</div>
+ </label>`;
+ }
+ document.getElementById('modalPuntos').classList.remove('hidden');
+ calcModal();
+}
+function calcModal(){
+ seleccionadas=[...document.querySelectorAll('#cartasModal input:checked')];
+ document.querySelectorAll('#cartasModal input')
+ .forEach(c=>c.disabled=!c.checked && seleccionadas.length>=7);
+ let suma=seleccionadas.reduce((a,c)=>a+Number(c.dataset.v),0);
+ if(seleccionadas.length===7){
+ suma+=15;
+ document.getElementById('modalFlip7').classList.remove('hidden');
+ }else document.getElementById('modalFlip7').classList.add('hidden');
+ if(document.getElementById('modalX2').checked) suma*=2;
+ let extra = parseInt(document.getElementById('modalExtra').value, 10) || 0;
+suma += extra;
+ document.getElementById('modalTotal').textContent=suma;
+}
+document.getElementById('modalExtra').oninput=calcModal;
+document.getElementById('modalX2').onchange=calcModal;
+
+function guardarModal(){
+ const puntos = Number(document.getElementById('modalTotal').textContent);
+ jugadores[jugadorActual].total += puntos;
+
+ cerrarModal();
+ renderJuego();
+}
+function cerrarModal(){
+ document.getElementById('modalPuntos').classList.add('hidden');
+}
+function siguienteRonda(){
+
+ const ranking = [...jugadores].sort((a,b)=>b.total - a.total);
+
+ if (ranking[0].total >= 200) {
+   mostrarFinal(ranking);
+   return;
+ }
+
+ ronda++;
+ document.getElementById('rondaActual').textContent = ronda;
+}
+
+function salirJuego(){
+ jugadores.forEach(j=>j.total=0);
+ document.getElementById('pantallaJuego').classList.add('hidden');
+ document.getElementById('pantallaJugadores').classList.remove('hidden');
+ renderLista();
+}
+function mostrarFinal(ranking){
+ const tabla = document.getElementById('tablaFinal');
+ tabla.innerHTML = '';
+
+ const medallas = ['🥇','🥈','🥉'];
+ const coloresPos = ['#facc15','#e5e7eb','#f97316'];
+
+ ranking.forEach((j,i)=>{
+   const medalla = medallas[i] || '🎯';
+   const color = coloresPos[i] || '#22c55e';
+
+   tabla.innerHTML += `
+    <div class="flex items-center justify-between bg-white text-gray-900 rounded-xl p-3 shadow">
+      <div class="flex items-center gap-3">
+        <div class="avatar" style="background:${color}">
+          ${j.nombre[0].toUpperCase()}
+        </div>
+        <div>
+          <div class="font-bold">${medalla} ${j.nombre}</div>
+          <div class="text-sm text-gray-600">${j.total} puntos</div>
+        </div>
+      </div>
+      <div class="text-2xl font-extrabold">${i+1}°</div>
+    </div>
+   `;
+ });
+
+ document.getElementById('modalFinal').classList.remove('hidden');
+}
+
+function cerrarFinal(){
+ document.getElementById('modalFinal').classList.add('hidden');
+ salirJuego();
+}
+
+
+function limpiarTodo(){ jugadores=[]; renderLista(); }
+function abrirReglas(){ document.getElementById('modalReglas').classList.remove('hidden'); }
+function cerrarReglas(){ document.getElementById('modalReglas').classList.add('hidden'); }
+</script>
+<script>
+(function () {
+  let startY = 0;
+
+  document.addEventListener('touchstart', function (e) {
+    startY = e.touches[0].clientY;
+  }, { passive: false });
+
+  document.addEventListener('touchmove', function (e) {
+    const currentY = e.touches[0].clientY;
+    const isPullingDown = currentY > startY;
+
+    if (window.scrollY === 0 && isPullingDown) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+})();
+</script>
+
+</body>
+</html>
