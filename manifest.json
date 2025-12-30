@@ -1,7 +1,8 @@
 {
   "name": "Flip 7 – Marcador",
   "short_name": "Flip 7",
-  "start_url": "/",
+  "start_url": "./index.html", 
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#052e16",
