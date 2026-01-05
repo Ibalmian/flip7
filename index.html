@@ -144,12 +144,13 @@
     Flip <span class="flip-seven">7</span>
   </h1>
 
-<button
-  onclick="salirJuego()"
-  class="text-3xl text-red-400 font-bold p-2 rounded-full hover:bg-red-900/30"
-  aria-label="Salir de la partida">
-  🚪
-</button>
+  <button
+    id="btnSalir"
+    onclick="confirmarSalida()"
+    class="hidden text-3xl text-red-400 font-bold p-2 rounded-full hover:bg-red-900/30"
+    aria-label="Salir de la partida">
+    🚪
+  </button>
 
 
 </header>
@@ -300,6 +301,7 @@
         if (jugadores.length > 18) return alert('Máximo 18 jugadores');
         document.getElementById('pantallaJugadores').classList.add('hidden');
         document.getElementById('pantallaJuego').classList.remove('hidden');
+	document.getElementById('btnSalir').classList.remove('hidden');
         jugadorActual = null;
         renderJuego();
         actualizarMiniRanking();
@@ -528,12 +530,7 @@
         actualizarBotonCaptura();
       }
 
-      function salirJuego() {
-  const seguro = confirm(
-    '⚠️ ¿Seguro que deseas salir?\n\nSe perderá el avance de la partida actual.'
-  );
-  if (!seguro) return;
-
+     function salirJuego() {
   jugadores.forEach(j => {
     j.total = 0;
     j.ultimaRondaCapturada = 0;
@@ -543,11 +540,22 @@
 
   ronda = 1;
   document.getElementById('rondaActual').textContent = ronda;
+
   document.getElementById('pantallaJuego').classList.add('hidden');
   document.getElementById('pantallaJugadores').classList.remove('hidden');
+
+  document.getElementById('btnSalir').classList.add('hidden');
+
   renderLista();
 }
 
+
+function confirmarSalida() {
+  const seguro = confirm(
+    '¿Seguro que quieres salir?\nSe perderá el progreso de la partida.'
+  );
+  if (seguro) salirJuego();
+}
 
       function mostrarFinal(ranking) {
         const tabla = document.getElementById('tablaFinal');
