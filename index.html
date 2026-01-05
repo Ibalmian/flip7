@@ -138,11 +138,17 @@
   </head>
   <body class="min-h-screen flex flex-col items-center p-3">
     <header class="w-full max-w-6xl flex justify-between items-center mb-4">
-      <button onclick="abrirReglas()" class="text-2xl">❓</button>
-      <h1 class="flip-title text-3xl sm:text-4xl">Flip <span class="flip-seven">7</span>
-      </h1>
-      <div></div>
-    </header>
+  <button onclick="abrirReglas()" class="text-2xl">❓</button>
+
+  <h1 class="flip-title text-3xl sm:text-4xl">
+    Flip <span class="flip-seven">7</span>
+  </h1>
+
+  <button onclick="salirJuego()" class="text-xl text-red-400 font-bold">
+    🚪
+  </button>
+</header>
+
     <!-- PANTALLA JUGADORES -->
     <section id="pantallaJugadores" class="bg-white text-gray-900 rounded-xl p-4 shadow w-full max-w-md">
       <h2 class="text-xl font-bold text-center mb-4">Jugadores</h2>
@@ -171,7 +177,6 @@
       <div class="bottom-bar rounded-xl max-w-md mx-auto">
         <button id="btnCaptura" onclick="accionCaptura()" class="flex-1 py-3 bg-gray-400 rounded-full font-bold" disabled> Selecciona un jugador </button>
         <button onclick="siguienteRonda()" class="flex-1 py-3 bg-blue-600 rounded-full font-bold"> Siguiente ronda </button>
-        <button onclick="salirJuego()" class="flex-1 py-3 bg-red-600 rounded-full font-bold"> Salir </button>
       </div>
     </section>
     <!-- MODAL REGLAS -->
@@ -377,33 +382,35 @@
       }
 
       function actualizarResumenRonda() {
-        const div = document.getElementById('resumenRonda');
-        if (!div || jugadores.length === 0) return;
-        // Todas las capturas de todas las rondas
-        const todasLasCapturas = jugadores.flatMap(j => j.historial.map(h => ({
-          jugador: j.nombre,
-          ronda: h.ronda,
-          puntos: h.puntos
-        })));
-        if (todasLasCapturas.length === 0) {
-          div.innerHTML = `
-      🎯 Promedio general: 
-																		<b>0</b> pts
-																		<br>
-      💥 Mejor ronda: 
-																			<b>-</b>
+  const div = document.getElementById('resumenRonda');
+  if (!div || jugadores.length === 0) return;
+
+  const todasLasCapturas = jugadores.flatMap(j =>
+    j.historial.map(h => ({
+      jugador: j.nombre,
+      ronda: h.ronda,
+      puntos: h.puntos
+    }))
+  );
+
+  if (todasLasCapturas.length === 0) {
+    div.innerHTML = `
+      🎮 Comienza la ronda ${ronda} y captura los primeros puntos
     `;
-          return;
-        }
-        const promedio = Math.round(todasLasCapturas.reduce((a, b) => a + b.puntos, 0) / todasLasCapturas.length);
-        const mejor = todasLasCapturas.reduce((a, b) => b.puntos > a.puntos ? b : a);
-        div.innerHTML = `
-  💥 Mejor ronda:
-  
-																			<b>${mejor.jugador}</b>
-  (${mejor.puntos} pts · R${mejor.ronda})
-`;
-      }
+    return;
+  }
+
+  const mejor = todasLasCapturas.reduce((a, b) =>
+    b.puntos > a.puntos ? b : a
+  );
+
+  div.innerHTML = `
+    💥 Mejor ronda:
+    <b>${mejor.jugador}</b>
+    (${mejor.puntos} pts · R${mejor.ronda})
+  `;
+}
+
 
       function abrirModal(i) {
         if (jugadores[i].ultimaRondaCapturada === ronda) {
@@ -517,18 +524,25 @@
       }
 
       function salirJuego() {
-        jugadores.forEach(j => {
-          j.total = 0;
-          j.ultimaRondaCapturada = 0;
-          j.puntosUltimaRonda = 0;
-          j.historial = [];
-        });
-        ronda = 1;
-        document.getElementById('rondaActual').textContent = ronda;
-        document.getElementById('pantallaJuego').classList.add('hidden');
-        document.getElementById('pantallaJugadores').classList.remove('hidden');
-        renderLista();
-      }
+  const seguro = confirm(
+    '⚠️ ¿Seguro que deseas salir?\n\nSe perderá el avance de la partida actual.'
+  );
+  if (!seguro) return;
+
+  jugadores.forEach(j => {
+    j.total = 0;
+    j.ultimaRondaCapturada = 0;
+    j.puntosUltimaRonda = 0;
+    j.historial = [];
+  });
+
+  ronda = 1;
+  document.getElementById('rondaActual').textContent = ronda;
+  document.getElementById('pantallaJuego').classList.add('hidden');
+  document.getElementById('pantallaJugadores').classList.remove('hidden');
+  renderLista();
+}
+
 
       function mostrarFinal(ranking) {
         const tabla = document.getElementById('tablaFinal');
