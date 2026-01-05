@@ -1,979 +1,640 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
+  <head>
     <meta charset="UTF-8">
-    <title>Skull King - Recuento</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip7 – Marcador</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Icono de la aplicación -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <!-- PWA / Iconos de la aplicación -->
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="ic_launcher_512.png">
-    <link rel="apple-touch-icon" href="ic_launcher_512.png">
-
-
-    <link href="https://fonts.googleapis.com/css2?family=Pirata+One&display=swap" rel="stylesheet">
-
+    <meta name="theme-color" content="#14532d">
+    <link rel="icon" type="image/png" sizes="32x32" href="icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192x192.png">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Flip7">
     <style>
-        /* Restauración de Fuente Pirata y Background de Pergamino */
-        body {
-            font-family: 'Pirata One', cursive; /* Fuente Pirata One */
-            /* base pergamino */
-            background: linear-gradient(180deg, #fff7ea 0%, #f3e0c1 35%, #d6b68a 100%);
-            background-attachment: fixed;
-            color: #111827; /* texto oscuro sobre pergamino */
-            
-            /* SOLUCIÓN 2: AGREGAR PADDING AL BODY PARA EVITAR QUE EL CONTENIDO SE ESCONDA BAJO EL HEADER FIJO */
-            /* El header es de ~4rem de alto (py-4) + shadow, así que 6rem es seguro. */
-            padding-top: 6rem; 
-        }
-        
-        /* overlay de textura sutil */
-        body::before{
-            content: "";
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: -1;
-            background-image:
-                radial-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
-                linear-gradient(transparent, rgba(0,0,0,0.02));
-            background-size: 6px 6px, 100% 100%;
-            opacity: 0.45;
-            mix-blend-mode: multiply;
-        }
+      body {
+        overscroll-behavior-y: contain;
+        touch-action: manipulation;
+        font-family: 'Inter', sans-serif;
+        background: radial-gradient(circle at top, #14532d, #052e16);
+        color: #f9fafb
+      }
 
-        /* Asegurar que las cajas de jugador mantengan un tamaño apropiado */
-        .pirate-card {
-            width: 250px; /* Tamaño fijo restaurado */
-        }
+      .player-card {
+        background: linear-gradient(145deg, #ffffff, #f3f4f6);
+        border-radius: 18px;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, .2);
+      }
 
-        /* Ajustes para el encabezado fijo */
-        header {
-            /* SOLUCIÓN 1: EL HEADER DEBE SER FIJO PERO CON Z-INDEX ALTO */
-            background-color: rgba(31, 41, 55, 0.98) !important; /* Fondo más oscuro para el encabezado */
-            color: #f8f6f0 !important; /* Texto claro */
-        }
+      .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.2rem;
+        color: white;
+      }
 
-        /* Estilo para los inputs de conteo para que se vean mejor sobre el fondo claro */
-        input[type="number"][readonly] {
-            background-color: transparent;
-            border: none;
-            text-align: center;
-        }
+      .avatar-lg {
+        width: 64px;
+        height: 64px;
+        font-size: 1.6rem;
+      }
 
-        /* --- ESTILOS MODAL DE AYUDA (SCROLL CORREGIDO) --- */
-        #modal-ayuda.hidden {
-            pointer-events: none;
-        }
+      .flip-title {
+        font-weight: 800;
+        color: #facc15;
+        -webkit-text-stroke: 2px #000;
+        text-shadow: 2px 2px 0 #000;
+        display: flex;
+        align-items: flex-end
+      }
 
-        #modal-ayuda .modal-content {
-            background: #fff7ea;
-            border: 2px solid #d6b68a;
-            color: #111827;
-            max-height: 90vh; 
-            pointer-events: all; 
-            display: flex; 
-            flex-direction: column; 
-        }
-        
-        .modal-body-scrollable {
-            overflow-y: auto; 
-            padding-bottom: 1rem; 
-            flex-grow: 1; 
-        }
+      .flip-seven {
+        font-size: 3.5rem;
+        margin-left: 2px
+      }
 
-        /* --- ANIMACIÓN DE GRITO PIRATA (INICIO Y FINAL) --- */
-        @keyframes pirateShout {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(3.5); opacity: 0; }
-        }
+      .modal-card {
+        background: linear-gradient(145deg, #064e3b, #022c22);
+        border: 3px solid #facc15;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, .6);
+      }
 
-        #transicion-zarpar, #transicion-cofre {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 900;
-        }
+      .carta {
+        width: 46px;
+        height: 68px;
+        border-radius: 10px;
+        border: 2px solid #9ca3af;
+        background: #fff;
+        color: #111827;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        cursor: pointer;
+      }
 
-        #transicion-zarpar.active .shout-text, 
-        #transicion-cofre.active .shout-text {
-            display: block;
-            animation: pirateShout 1.5s ease-out forwards;
-        }
-        
-        /* --- ANIMACIÓN MINI-GRITO RON! RON! RON! --- */
-        
-        /* Contenedor relativo para posicionar los gritos */
-        #contenedor-ron {
-            position: relative;
-            width: 150px; 
-            height: 60px; 
-            margin-right: 1rem;
-            pointer-events: none; 
-        }
+      input[type=checkbox]:checked+.carta {
+        background: #2563eb;
+        color: white;
+        border-color: #1d4ed8;
+      }
 
-        /* Base de los gritos (Negro y 1.2rem) */
-        .ron-shout-part {
-            position: absolute;
-            font-size: 1.2rem; 
-            font-weight: bold;
-            color: #111827; 
-            text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.5); 
-            opacity: 0; 
-            transform: scale(0.8);
-            animation-name: ron-sequence;
-            animation-duration: 3s; 
-            animation-iteration-count: infinite;
-            animation-timing-function: steps(1, end); 
-        }
+      .carta-x2 {
+        width: 72px;
+        height: 72px;
+        background: #7c3aed;
+        color: white;
+        font-size: 1.4rem;
+        border-color: #5b21b6;
+      }
 
-        /* Posición y retraso para cada grito */
-        #ron-shout-1 {
-            top: 5px;
-            left: 5px;
-        }
-        #ron-shout-2 {
-            top: 20px;
-            left: 40px;
-            animation-delay: -1s;
-        }
-        #ron-shout-3 {
-            top: 35px;
-            left: 75px;
-            animation-delay: -2s;
-        }
+      .section {
+        background: #f9fafb;
+        color: #111827;
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 12px;
+      }
 
-        /* La animación de 3 pasos y su visibilidad. */
-        @keyframes ron-sequence {
-            0% {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            1% {
-                opacity: 1;
-                transform: scale(1.1);
-            }
-            33% {
-                opacity: 1;
-                transform: scale(1.1);
-            }
-            34% {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            100% {
-                opacity: 0;
-            }
-        }
+      .section-title {
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+
+      .total-box {
+        background: #111827;
+        color: #facc15;
+        border-radius: 14px;
+        padding: 14px;
+        text-align: center;
+        font-size: 1.6rem;
+        font-weight: 800;
+      }
+
+      .bottom-bar {
+        position: sticky;
+        bottom: 0;
+        background: rgba(6, 78, 59, .85);
+        backdrop-filter: blur(8px);
+        padding: 12px;
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
     </style>
-</head>
-<body class="min-h-screen flex flex-col items-center">
-
-    <header class="w-full py-4 shadow-lg fixed top-0 left-0 z-50 flex items-center justify-between px-4">
-        
-        <button onclick="mostrarAyuda()" class="p-2 rounded-full bg-yellow-600 hover:bg-yellow-700 text-white shadow-lg text-2xl z-50" aria-label="Mostrar información del juego">
-            ❓
-        </button>
-
-        <h1 class="text-3xl font-extrabold text-yellow-400 tracking-wide text-center flex-grow"> ☠️ Marcador SkullKing ☠️ </h1>
-        
-        <div class="w-10 h-10"></div> 
+  </head>
+  <body class="min-h-screen flex flex-col items-center p-3">
+    <header class="w-full max-w-6xl flex justify-between items-center mb-4">
+      <button onclick="abrirReglas()" class="text-2xl">❓</button>
+      <h1 class="flip-title text-3xl sm:text-4xl">Flip <span class="flip-seven">7</span>
+      </h1>
+      <div></div>
     </header>
-
-    <div class="w-full flex flex-col items-center p-4"> <div id="pantalla-inicial" class="flex flex-col items-center gap-4 w-full">
-            <div class="bg-gray-200 bg-opacity-80 text-black rounded-xl p-6 shadow-lg w-full max-w-md">
-                <label class="block mb-2 font-bold text-center">Tipo de recuento:</label>
-                <div class="flex justify-center gap-4 mb-4">
-                    <label class="flex items-center gap-2">
-                        <input type="radio" name="modo" value="skull" checked> <span>Skull King</span>
-                    </label>
-                    <label class="flex items-center gap-2">
-                        <input type="radio" name="modo" value="bribon"> <span>Bribón</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="bg-gray-200 bg-opacity-80 text-black rounded-xl p-6 shadow-lg w-full max-w-md">
-                <label class="block mb-2">Nombre del pirata:</label>
-                <input id="nombrePirata" type="text" class="p-2 rounded text-black mb-3 w-full" placeholder="Ej: Barbanegra">
-                <button onclick="agregarPirata()" class="px-4 py-2 bg-green-600 rounded text-white w-full">Agregar pirata</button>
-            </div>
-
-            <div class="bg-gray-200 bg-opacity-80 text-black rounded-xl p-6 shadow-lg w-full max-w-md">
-                <h2 class="text-xl font-bold mb-2">⚓ Piratas</h2>
-                <ul id="listaPiratas" class="list-none pl-0"></ul>
-            </div>
-
-            <button onclick="iniciarJuego()" class="px-6 py-3 bg-blue-600 rounded mt-4 text-white hover:bg-blue-700 transition duration-300">Iniciar Juego</button>
-        </div>
-
-        <div id="pantalla-juego" class="hidden flex flex-col items-center gap-6 w-full">
-            <div class="bg-gray-200 bg-opacity-80 text-black rounded-xl p-4 shadow-lg w-full max-w-md flex justify-between items-center">
-                <span class="font-bold text-xl">Ronda: <span id="ronda-actual">1</span> / 10 </span>
-                <span id="puntos-potenciales" class="font-semibold text-lg text-purple-700 hidden">Puntos potenciales: <span id="ppuntos">10</span>
-                </span>
-            </div>
-
-            <div id="contenedorPiratas" class="flex flex-wrap justify-center gap-6 w-full max-w-5xl"></div>
-
-            <div class="flex gap-4 mt-6 items-center justify-center w-full"> 
-                
-                <div id="contenedor-apuesta" class="flex items-center">
-                    <div id="contenedor-ron" style="display: none;">
-                        <span id="ron-shout-1" class="ron-shout-part">¡RON!</span>
-                        <span id="ron-shout-2" class="ron-shout-part">¡RON!</span>
-                        <span id="ron-shout-3" class="ron-shout-part">¡RON!</span>
-                    </div>
-                    
-                    <button id="btn-apuesta" onclick="confirmarApuestas()" class="px-4 py-2 bg-yellow-600 rounded text-white">Confirmar Apuestas</button>
-                </div>
-
-                <button id="btn-resultados" onclick="confirmarResultados()" class="px-4 py-2 bg-green-600 rounded text-white hidden">Confirmar Resultados</button>
-                <button id="btn-siguiente" onclick="siguienteRonda()" class="px-4 py-2 bg-blue-600 rounded text-white hidden">Siguiente Ronda</button>
-            </div>
-
-            <button id="btn-salir" onclick="reiniciarJuego()" class="px-6 py-3 bg-red-600 rounded text-white mt-4">Salir</button>
-
-            <div id="ranking-parcial" class="bg-gray-200 bg-opacity-80 text-black rounded-xl p-4 shadow-lg mt-6 w-full max-w-md hidden">
-                <h3 class="text-lg font-bold mb-2 text-center">📊 Posiciones actuales</h3>
-                <table class="w-full text-black border-collapse">
-                    <thead>
-                        <tr class="border-b border-gray-400">
-                            <th class="px-2 py-1 text-left w-1/4">Lugar</th>
-                            <th class="px-2 py-1 text-left w-1/2">Pirata</th>
-                            <th class="px-2 py-1 text-right w-1/4">Puntos</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaParcial"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="pantalla-final" class="hidden flex flex-col items-center gap-6">
-            <h2 class="text-3xl font-bold text-yellow-600">🏆 Ranking Final</h2>
-            <table class="bg-gray-200 bg-opacity-80 text-black rounded-xl shadow-lg p-6 border-collapse">
-                <thead>
-                    <tr class="border-b border-gray-400">
-                        <th class="px-4 py-2 text-left">Lugar</th>
-                        <th class="px-4 py-2 text-left">Pirata</th>
-                        <th class="px-4 py-2 text-right">Puntos</th>
-                    </tr>
-                </thead>
-                <tbody id="tablaRanking"></tbody>
-            </table>
-            <button onclick="reiniciarJuego()" class="px-6 py-3 bg-red-600 rounded text-white mt-4">Salir</button>
-        </div>
+    <!-- PANTALLA JUGADORES -->
+    <section id="pantallaJugadores" class="bg-white text-gray-900 rounded-xl p-4 shadow w-full max-w-md">
+      <h2 class="text-xl font-bold text-center mb-4">Jugadores</h2>
+      <div class="flex gap-2 mb-4">
+        <input id="nombreJugador" class="flex-1 p-2 border rounded" placeholder="Nombre del jugador">
+        <button onclick="agregarJugador()" class="px-4 py-2 bg-green-600 text-white rounded font-bold">+</button>
+      </div>
+      <div id="listaJugadores" class="space-y-2 mb-4"></div>
+      <button onclick="iniciarPartida()" class="w-full py-3 bg-blue-600 text-white rounded font-bold"> Iniciar partida </button>
+      <button onclick="limpiarTodo()" class="w-full py-2 mt-2 bg-gray-300 rounded"> Limpiar todo </button>
+    </section>
+    <!-- PANTALLA JUEGO -->
+    <section id="pantallaJuego" class="hidden w-full max-w-6xl text-white">
+      <h2 class="text-2xl font-bold text-center mb-4"> Ronda <span id="rondaActual">1</span>
+      </h2>
+      <!-- RESUMEN DE RONDA -->
+      <div id="resumenRonda" class="text-center text-sm text-green-100 mb-3 space-y-1">
+        <!-- JS -->
+      </div>
+      <!-- MINI TABLA DE POSICIONES -->
+      <div id="miniRanking" class="bg-green-900/80 text-white rounded-xl p-3 mb-4 shadow max-w-md mx-auto">
+        <div class="font-bold mb-1 text-center">🏆 Posiciones</div>
+        <div id="listaRanking" class="space-y-1 text-sm"></div>
+      </div>
+      <div id="contenedorJugadores" class="flex flex-wrap gap-4 justify-center mb-6"></div>
+      <div class="bottom-bar rounded-xl max-w-md mx-auto">
+        <button id="btnCaptura" onclick="accionCaptura()" class="flex-1 py-3 bg-gray-400 rounded-full font-bold" disabled> Selecciona un jugador </button>
+        <button onclick="siguienteRonda()" class="flex-1 py-3 bg-blue-600 rounded-full font-bold"> Siguiente ronda </button>
+        <button onclick="salirJuego()" class="flex-1 py-3 bg-red-600 rounded-full font-bold"> Salir </button>
+      </div>
+    </section>
+    <!-- MODAL REGLAS -->
+    <div id="modalReglas" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-3">
+      <div class="modal-card rounded-2xl p-4 max-w-md w-full text-yellow-100">
+        <h3 class="text-2xl font-extrabold text-center mb-3">📘 Reglas del Flip 7</h3>
+        <p class="text-sm mb-3"> Este marcador está diseñado para que tú te enfoques en lo importante: <b>jugar, reírte y reclamar puntos como campeón</b> 😎 </p>
+        <ul class="space-y-2 text-sm">
+          <li>🃏 Se juega entre <b>3 y 18 jugadores</b>. </li>
+          <li>🎴 En cada ronda selecciona las cartas obtenidas.</li>
+          <li>🎉 7 cartas = <b>Flip7</b> (+15). </li>
+          <li>✖️ El x2 aplica solo a cartas.</li>
+          <li>⭐ Extras se suman al final.</li>
+          <li>🏆 Gana quien llegue a <b>200 puntos</b>. </li>
+        </ul>
+        <button onclick="cerrarReglas()" class="mt-4 w-full py-2 bg-yellow-400 text-black rounded font-bold"> ¡Entendido! </button>
+      </div>
     </div>
-
-    <div id="modal-ayuda" class="fixed inset-0 bg-black bg-opacity-70 z-[100] hidden flex items-center justify-center p-4">
-        <div class="modal-content p-6 rounded-xl shadow-2xl w-full max-w-lg">
-            
-            <h2 class="text-3xl font-extrabold text-gray-900 mb-4 border-b-2 border-gray-400 pb-2 text-center flex-shrink-0">📜 ¡El Código Pirata del Marcador!</h2>
-
-            <div class="modal-body-scrollable">
-                <h3 class="text-xl font-bold text-yellow-800 mb-2 mt-4">1. ⚓ El Tamaño de la Tripulación</h3>
-                <p class="mb-3 text-base">Este libro de cuentas está preparado para cualquier expedición: ¡funciona para un navío con **2 a 8 piratas**! Prepara tus krakens y tus cañones.</p>
-
-                <h3 class="text-xl font-bold text-yellow-800 mb-2 mt-4">2. 🏴‍☠️ Los Sistemas de Conteo</h3>
-                <p class="mb-3 text-base">Podemos seguir dos rutas para llevar el marcador. ¡Elige tu destino antes de zarpar!</p>
-
-                <ul class="list-none pl-0 space-y-4">
-                    <li>
-                        <strong class="text-lg text-purple-700">💀 Modo Skull King (Clásico)</strong>
-                        <ul class="list-disc pl-5 space-y-1 text-sm">
-                            <li>**¡Apuesta Acertada (Mayor a Cero)!** Te llevas **+20 puntos** por cada baza que apostaste y ganaste. (Apuesta y Ganadas son iguales, y la Apuesta fue diferente de cero).</li>
-                            <li>**¡Apuesta Cero Acertada!** (Apuesta = 0 y Ganadas = 0): Ganas **+10 puntos** multiplicados por el número de la ronda actual.</li>
-                            <li>**¡Apuesta Fallida!** (Apuesta y Ganadas son diferentes): Pierdes **-10 puntos** por cada baza de diferencia con la apuesta.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong class="text-lg text-purple-700">⭐ Modo Bribón (El Desafío del Capitán)</strong>
-                        <ul class="list-disc pl-5 space-y-1 text-sm">
-                            <li>**¡Impacto Directo!** (Apuesta y Ganadas son iguales): Ganas el 100% de los puntos potenciales (Ronda multiplicada por 10). **Solo aquí SÍ sumas Bonificaciones, si se informan.**</li>
-                            <li>**¡Golpe de Refilón!** (Diferencia de 1 entre Apuesta y Ganadas): Ganas el 50% de los puntos potenciales (redondeado). **Aquí NO ganas Bonificaciones.**</li>
-                            <li>**¡Tiro Errado!** (Diferencia de 2 o más entre Apuesta y Ganadas): **0 puntos**. ¡A afilar la puntería!</li>
-                        </ul>
-                    </li>
-                </ul>
-
-                <h3 class="text-xl font-bold text-yellow-800 mb-2 mt-4">3. 💎 El Tesoro Extra (Bonificaciones)</h3>
-                <p class="mb-3 text-base">Estas riquezas se marcan en la tarjeta de cada pirata. **Recuerda:** solo se suman si acertaste tu apuesta de bazas (o si fue "Impacto Directo" en Modo Bribón y las informaste):</p>
-                <ul class="list-disc pl-5 space-y-1 text-sm">
-                    <li>**Cartas 14s (Todos los colores):** **+10 puntos** por cada carta 14. El 14 Negro vale **+20 puntos a parte de los 10**.</li>
-                    <li>**🧜 Sirena:** **+20 puntos** por cada Sirena capturada.</li>
-                    <li>**🏴‍☠️ Pirata:** **+30 puntos** por cada Pirata derrotado.</li>
-                    <li>**💀 Skull King:** **+40 puntos** si logras dominar al Rey Calavera.</li>
-                </ul>
-            </div>
-            <div class="text-right mt-4 pt-3 border-t border-gray-30 flex-shrink-0">
-                <button onclick="cerrarAyuda()" class="px-4 py-2 bg-red-600 rounded text-white hover:bg-red-700 font-bold">¡Arrr! A Cerrar el Mapa</button>
-            </div>
+    <!-- MODAL RESULTADOS FINALES -->
+    <div id="modalFinal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-3">
+      <div class="modal-card rounded-2xl p-5 max-w-md w-full text-yellow-100 max-h-[90vh] flex flex-col">
+        <h3 class="text-3xl font-extrabold text-center mb-4">🏆 Resultados finales</h3>
+        <div id="tablaFinal" class="space-y-3 mb-5 overflow-y-auto flex-1"></div>
+        <button onclick="cerrarFinal()" class="w-full py-3 bg-yellow-400 text-black rounded font-extrabold"> Volver al inicio </button>
+      </div>
+    </div>
+    <!-- MODAL PUNTOS -->
+    <div id="modalPuntos" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-start justify-center z-50 p-3 overflow-y-auto">
+      <div class="modal-card rounded-2xl p-4 max-w-md w-full my-6">
+        <div class="flex flex-col items-center mb-4">
+          <div id="modalAvatar" class="avatar avatar-lg mb-2"></div>
+          <h3 id="modalJugador" class="text-2xl font-bold text-yellow-300"></h3>
         </div>
+        <div class="section">
+          <div class="section-title">🃏 Cartas obtenidas</div>
+          <div id="cartasModal" class="grid grid-cols-4 gap-2"></div>
+          <div id="modalFlip7" class="hidden mt-2 text-center text-green-700 font-extrabold"> 🎉 Flip7 conseguido (+15) </div>
+        </div>
+        <div class="section">
+          <div class="section-title">➕ Puntos adicionales</div>
+          <input id="modalExtra" type="number" min="0" step="1" class="w-full border rounded p-2 text-center font-bold" placeholder="0">
+        </div>
+        <div class="section">
+          <div class="section-title">✖️ Multiplicador</div>
+          <label>
+            <input type="checkbox" id="modalX2" class="hidden">
+            <div class="carta carta-x2 mx-auto">✖2</div>
+          </label>
+        </div>
+        <div class="total-box mb-4"> Total de la ronda <br>
+          <span id="modalTotal">0</span>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="cerrarModal()" class="flex-1 py-2 bg-gray-300 rounded font-bold">Cancelar</button>
+          <button onclick="guardarModal()" class="flex-1 py-2 bg-blue-600 text-white rounded font-bold">Guardar</button>
+        </div>
+      </div>
     </div>
-
-    <div id="transicion-zarpar">
-        <span class="shout-text text-8xl text-yellow-400 font-bold tracking-widest" style="display:none;">¡A ZARPAR!</span>
-    </div>
-
-    <div id="transicion-cofre">
-        <span class="shout-text text-8xl text-yellow-400 font-bold tracking-widest" style="display:none;">¡TIERRA A LA VISTA!</span>
-    </div>
-
     <script>
-        // Estado global
-        let piratas = [];
-        let ronda = 1;
-        let fase = "apuesta";
-        let modoActual = "skull"; // 'skull' o 'bribon'
-        let pantallaAnterior = "pantalla-inicial";
+      let jugadores = [],
+        ronda = 1,
+        jugadorActual = null,
+        seleccionadas = [];
+      const colores = ['#2563eb', '#dc2626', '#16a34a', '#7c3aed', '#ea580c', '#0891b2'];
 
-        // --- Funciones de Utilidad ---
+      function agregarJugador() {
+        const i = document.getElementById('nombreJugador');
+        if (!i.value.trim()) return;
+        jugadores.push({
+          nombre: i.value.trim(),
+          total: 0,
+          ultimaRondaCapturada: 0,
+          puntosUltimaRonda: 0,
+          historial: []
+        });
+        i.value = '';
+        renderLista();
+      }
 
-        function toggleRonShout(show) {
-            const ronContainer = document.getElementById("contenedor-ron");
-            if (ronContainer) {
-                ronContainer.style.display = show ? 'block' : 'none'; // Mostrar/Ocultar el contenedor padre
-            }
+      function renderLista() {
+        const c = document.getElementById('listaJugadores');
+        c.innerHTML = '';
+        jugadores.forEach((j, i) => {
+          const color = colores[i % colores.length];
+          c.innerHTML += `
+ 
+	
+																		<div class="player-card">
+																			<div class="avatar" style="background:${color}">
+ ${j.nombre[0].toUpperCase()}
+ </div>
+																			<div class="flex-1 font-semibold">${j.nombre}</div>
+																			<button onclick="editarJugador(${i})">✏️</button>
+																			<button onclick="eliminarJugador(${i})">🗑️</button>
+																		</div>`;
+        });
+      }
+
+      function editarJugador(i) {
+        const n = prompt('Editar nombre', jugadores[i].nombre);
+        if (n && n.trim()) {
+          jugadores[i].nombre = n.trim();
+          renderLista();
         }
+      }
+
+      function eliminarJugador(i) {
+        if (confirm('¿Eliminar jugador?')) {
+          jugadores.splice(i, 1);
+          renderLista();
+        }
+      }
+
+      function iniciarPartida() {
+        if (jugadores.length < 3) return alert('Mínimo 3 jugadores');
+        if (jugadores.length > 18) return alert('Máximo 18 jugadores');
+        document.getElementById('pantallaJugadores').classList.add('hidden');
+        document.getElementById('pantallaJuego').classList.remove('hidden');
+        jugadorActual = null;
+        renderJuego();
+        actualizarMiniRanking();
+        actualizarResumenRonda();
+        actualizarBotonCaptura();
+      }
+
+      function renderJuego() {
+        const c = document.getElementById('contenedorJugadores');
+        c.innerHTML = '';
+        jugadores.forEach((j, i) => {
+          const color = colores[i % colores.length];
+          const yaCapturo = j.ultimaRondaCapturada === ronda;
+          c.innerHTML += `
+      
+																		<div 
+        onclick="seleccionarJugador(${i})"
+        class="bg-white text-gray-900 p-4 rounded-xl w-64 shadow cursor-pointer
+        ${jugadorActual === i ? 'ring-4 ring-yellow-400 scale-105' : ''}">
+																			<div class="flex items-center gap-3 mb-2">
+																				<div class="avatar" style="background:${color}">
+            ${j.nombre[0].toUpperCase()}
+          </div>
+																				<b>${j.nombre}</b>
+																			</div>
+																			<div class="text-sm">Total: 
+																				<b>${j.total}</b>
+																			</div>
+																			<div class="text-xs text-gray-600">
+          🎯 Promedio: 
+																				<b>${ronda > 0 ? Math.round(j.total / ronda) : 0}</b>
+																			</div>
+
+        ${yaCapturo ? `
+																			<div class="mt-1 text-xs text-yellow-600 font-bold">✔ Capturado</div>` : ''}
+      
+																		</div>
+    `;
+        });
+      }
+
+      function seleccionarJugador(i) {
+        jugadorActual = i;
+        renderJuego();
+        actualizarBotonCaptura();
+      }
+
+      function actualizarBotonCaptura() {
+        const btn = document.getElementById('btnCaptura');
+        if (jugadorActual === null) {
+          btn.textContent = 'Selecciona un jugador';
+          btn.className = 'flex-1 py-3 bg-gray-400 rounded-full font-bold';
+          btn.disabled = true;
+          return;
+        }
+        const j = jugadores[jugadorActual];
+        const yaCapturo = j.ultimaRondaCapturada === ronda;
+        btn.textContent = yaCapturo ? '✏️ Editar puntos' : '➕ Capturar puntos';
+        btn.className = `flex-1 py-3 rounded-full font-bold ${
+    yaCapturo ? 'bg-yellow-500' : 'bg-green-600'
+  }`;
+        btn.disabled = false;
+      }
+
+      function accionCaptura() {
+        if (jugadorActual === null) return;
+        abrirModal(jugadorActual);
+      }
+
+      function actualizarMiniRanking() {
+        const cont = document.getElementById('listaRanking');
+        if (!cont) return;
+        cont.innerHTML = '';
+        const ordenados = [...jugadores].sort((a, b) => b.total - a.total).slice(0, 3);
+        const medallas = ['🥇', '🥈', '🥉'];
+        ordenados.forEach((j, i) => {
+          cont.innerHTML += `
+      
+																		<div class="flex justify-between">
+																			<span>${medallas[i]} ${j.nombre}</span>
+																			<span class="font-bold">${j.total}</span>
+																		</div>
+    `;
+        });
+      }
+
+      function actualizarResumenRonda() {
+        const div = document.getElementById('resumenRonda');
+        if (!div || jugadores.length === 0) return;
+        // Todas las capturas de todas las rondas
+        const todasLasCapturas = jugadores.flatMap(j => j.historial.map(h => ({
+          jugador: j.nombre,
+          ronda: h.ronda,
+          puntos: h.puntos
+        })));
+        if (todasLasCapturas.length === 0) {
+          div.innerHTML = `
+      🎯 Promedio general: 
+																		<b>0</b> pts
+																		<br>
+      💥 Mejor ronda: 
+																			<b>-</b>
+    `;
+          return;
+        }
+        const promedio = Math.round(todasLasCapturas.reduce((a, b) => a + b.puntos, 0) / todasLasCapturas.length);
+        const mejor = todasLasCapturas.reduce((a, b) => b.puntos > a.puntos ? b : a);
+        div.innerHTML = `
+  💥 Mejor ronda:
+  
+																			<b>${mejor.jugador}</b>
+  (${mejor.puntos} pts · R${mejor.ronda})
+`;
+      }
+
+      function abrirModal(i) {
+        if (jugadores[i].ultimaRondaCapturada === ronda) {
+          const quiereEditar = confirm('Este jugador ya capturó puntos en esta ronda.\n¿Deseas modificar su captura?');
+          if (!quiereEditar) return;
+          // Quitamos los puntos capturados anteriormente en esta ronda
+          jugadores[i].total -= jugadores[i].puntosUltimaRonda;
+          jugadores[i].puntosUltimaRonda = 0;
+        }
+        jugadorActual = i;
+        seleccionadas = [];
+        const j = jugadores[i];
+        const color = colores[i % colores.length];
+        document.getElementById('modalJugador').textContent = j.nombre;
+        const av = document.getElementById('modalAvatar');
+        av.style.background = color;
+        av.textContent = j.nombre[0].toUpperCase();
+        document.getElementById('modalExtra').value = 0;
+        document.getElementById('modalX2').checked = false;
+        document.getElementById('modalFlip7').classList.add('hidden');
+        const c = document.getElementById('cartasModal');
+        c.innerHTML = '';
+        for (let n = 0; n <= 12; n++) {
+          c.innerHTML += `
+ 
+	
+																			<label>
+																				<input type="checkbox" class="hidden" data-v="${n}" onchange="calcModal()">
+																					<div class="carta">${n}</div>
+																				</label>`;
+        }
+        document.getElementById('modalPuntos').classList.remove('hidden');
+        calcModal();
+      }
+
+      function calcModal() {
+        seleccionadas = [...document.querySelectorAll('#cartasModal input:checked')];
+        document.querySelectorAll('#cartasModal input').forEach(c => c.disabled = !c.checked && seleccionadas.length >= 7);
+        let suma = seleccionadas.reduce((a, c) => a + Number(c.dataset.v), 0);
+        if (seleccionadas.length === 7) {
+          suma += 15;
+          document.getElementById('modalFlip7').classList.remove('hidden');
+          document.querySelector('.modal-card').classList.add('animate-pulse');
+        } else document.getElementById('modalFlip7').classList.add('hidden');
+        document.querySelector('.modal-card').classList.remove('animate-pulse');
+        if (document.getElementById('modalX2').checked) suma *= 2;
+        let extra = parseInt(document.getElementById('modalExtra').value, 10) || 0;
+        suma += extra;
+        document.getElementById('modalTotal').textContent = suma;
+      }
+      document.getElementById('modalExtra').oninput = calcModal;
+      document.getElementById('modalX2').onchange = calcModal;
+
+      function animarNumero(elemento, desde, hasta, duracion = 400) {
+        let inicio = null;
+
+        function animar(t) {
+          if (!inicio) inicio = t;
+          const progreso = Math.min((t - inicio) / duracion, 1);
+          elemento.textContent = Math.floor(desde + (hasta - desde) * progreso);
+          if (progreso < 1) requestAnimationFrame(animar);
+        }
+        requestAnimationFrame(animar);
+      }
+
+      function guardarModal() {
+        const puntos = Number(document.getElementById('modalTotal').textContent);
+        const jugador = jugadores[jugadorActual];
+        // Animación de cambio de total
+        const antes = jugador.total;
+        jugador.total += puntos;
+        const despues = jugador.total;
+        jugador.ultimaRondaCapturada = ronda;
+        jugador.puntosUltimaRonda = puntos;
+        // 🔥 HISTORIAL SIN DUPLICADOS
+        const h = jugador.historial;
+        const idx = h.findIndex(r => r.ronda === ronda);
+        if (idx >= 0) {
+          h[idx].puntos = puntos; // edición
+        } else {
+          h.push({
+            ronda,
+            puntos
+          }); // nueva captura
+        }
+        cerrarModal();
+        renderJuego();
+        actualizarMiniRanking();
+        actualizarResumenRonda();
+        actualizarBotonCaptura();
+      }
+
+      function cerrarModal() {
+        document.getElementById('modalPuntos').classList.add('hidden');
+      }
+
+      function siguienteRonda() {
+        const ranking = [...jugadores].sort((a, b) => b.total - a.total);
+        if (ranking[0].total >= 200) {
+          mostrarFinal(ranking);
+          return;
+        }
+        ronda++;
+        document.getElementById('rondaActual').textContent = ronda;
+        mostrarCambioRonda();
+        renderJuego();
+        actualizarMiniRanking();
+        actualizarResumenRonda();
+        jugadorActual = null;
+        actualizarBotonCaptura();
+      }
+
+      function salirJuego() {
+        jugadores.forEach(j => {
+          j.total = 0;
+          j.ultimaRondaCapturada = 0;
+          j.puntosUltimaRonda = 0;
+          j.historial = [];
+        });
+        ronda = 1;
+        document.getElementById('rondaActual').textContent = ronda;
+        document.getElementById('pantallaJuego').classList.add('hidden');
+        document.getElementById('pantallaJugadores').classList.remove('hidden');
+        renderLista();
+      }
+
+      function mostrarFinal(ranking) {
+        const tabla = document.getElementById('tablaFinal');
+        tabla.innerHTML = '';
+        const medallas = ['🥇', '🥈', '🥉'];
+        const coloresPos = ['#facc15', '#e5e7eb', '#f97316'];
+        ranking.forEach((j, i) => {
+          setTimeout(() => {
+            const medalla = medallas[i] || '🎯';
+            const color = coloresPos[i] || '#22c55e';
+            const stats = obtenerStats(j);
+            tabla.innerHTML += `
         
-        function mostrarAyuda() {
-            if (!document.getElementById("pantalla-juego").classList.contains("hidden")) {
-                pantallaAnterior = "pantalla-juego";
-                document.getElementById("pantalla-juego").classList.add("hidden");
-            } else if (!document.getElementById("pantalla-final").classList.contains("hidden")) {
-                pantallaAnterior = "pantalla-final";
-                document.getElementById("pantalla-final").classList.add("hidden");
-            } else {
-                pantallaAnterior = "pantalla-inicial";
-                document.getElementById("pantalla-inicial").classList.add("hidden");
-            }
-            document.getElementById("modal-ayuda").classList.remove("hidden");
-        }
+	
+																				<div class="flex items-center justify-between bg-white text-gray-900 rounded-xl p-3 shadow">
+																					<div class="flex items-center gap-3">
+																						<div class="avatar" style="background:${color}">
+              ${j.nombre[0].toUpperCase()}
+            </div>
+																						<div>
+																							<div class="font-bold">${medalla} ${j.nombre}</div>
+																							<div class="text-sm text-gray-600 font-semibold">
+                ${j.total} puntos
+              </div>
+																							<div class="text-xs text-gray-500 mt-1">
+                🔥 Mejor: ${stats?.mejorRonda || 0} |
+                🎯 Prom: ${stats?.promedio || 0} |
+                🎉 Flip7: ${stats?.flip7 || 0}
+              </div>
+																						</div>
+																					</div>
+																					<div class="text-2xl font-extrabold">${i+1}°</div>
+																				</div>
+      `;
+          }, i * 250); // 👈 DELAY POR POSICIÓN
+        });
+        document.getElementById('modalFinal').classList.remove('hidden');
+      }
 
-        function cerrarAyuda() {
-            document.getElementById("modal-ayuda").classList.add("hidden");
-            document.getElementById(pantallaAnterior).classList.remove("hidden");
-        }
+      function obtenerStats(j) {
+        if (j.historial.length === 0) return null;
+        const puntos = j.historial.map(h => h.puntos);
+        return {
+          mejorRonda: Math.max(...puntos),
+          promedio: Math.round(puntos.reduce((a, b) => a + b, 0) / puntos.length),
+          flip7: j.historial.filter(h => h.puntos >= 15).length
+        };
+      }
 
-        function crearJugador(nombre) {
-            return {
-                nombre,
-                puntos: 0,
-                apuesta: 0,
-                ganados: 0,
-                sirenaCount: 0,
-                pirataCount: 0,
-                skullSelected: false,
-                c14: { verde: false, amarillo: false, morado: false, negro: false }
-            };
-        }
+      function cerrarFinal() {
+        document.getElementById('modalFinal').classList.add('hidden');
+        salirJuego();
+      }
 
-        // --- UI: agregar / actualizar lista de jugadores (pantalla inicial) ---
-        function agregarPirata() {
-            const input = document.getElementById("nombrePirata");
-            const nombre = input.value.trim();
-            if (nombre) {
-                if (piratas.length >= 8) {
-                    alert("⚠️ Máximo 8 jugadores permitidos.");
-                    return;
-                }
-                piratas.push(crearJugador(nombre));
-                actualizarLista();
-                input.value = "";
-            }
-        }
+      function mostrarCambioRonda() {
+        const overlay = document.getElementById('overlayRonda');
+        const texto = document.getElementById('textoRonda');
+        texto.textContent = `RONDA ${ronda}`;
+        overlay.classList.remove('hidden');
+        // reset animación
+        texto.classList.remove('scale-100', 'opacity-100');
+        texto.classList.add('scale-75', 'opacity-0');
+        setTimeout(() => {
+          texto.classList.remove('scale-75', 'opacity-0');
+          texto.classList.add('scale-100', 'opacity-100');
+        }, 50);
+        setTimeout(() => {
+          overlay.classList.add('hidden');
+        }, 800);
+      }
 
-        function actualizarLista() {
-            const lista = document.getElementById("listaPiratas");
-            lista.innerHTML = "";
-            piratas.forEach((p, index) => {
-                const li = document.createElement("li");
-                li.className = "flex justify-between items-center py-2 border-b last:border-b-0 border-gray-300";
-                li.innerHTML = `
-                    <span class="text-lg">${p.nombre}</span>
-                    <div class="flex gap-2">
-                        <button onclick="editarPirata(${index})" class="text-yellow-600 hover:text-yellow-700">✏️</button>
-                        <button onclick="borrarPirata(${index})" class="text-red-500 hover:text-red-600">🗑️</button>
-                    </div>
-                `;
-                lista.appendChild(li);
-            });
-        }
+      function limpiarTodo() {
+        jugadores = [];
+        renderLista();
+      }
 
-        function editarPirata(index) {
-            const nuevoNombre = prompt("Nuevo nombre:", piratas[index].nombre);
-            if (nuevoNombre) {
-                piratas[index].nombre = nuevoNombre.trim();
-                actualizarLista();
-            }
-        }
+      function abrirReglas() {
+        document.getElementById('modalReglas').classList.remove('hidden');
+      }
 
-        function borrarPirata(index) {
-            piratas.splice(index, 1);
-            actualizarLista();
-        }
-
-        // --- Iniciar juego (MODIFICADA PARA TRANSICIÓN) ---
-        function iniciarJuego() {
-            modoActual = document.querySelector('input[name="modo"]:checked')?.value || "skull";
-            if (piratas.length < 2) {
-                alert("⚠️ Se requieren al menos 2 jugadores para iniciar.");
-                return;
-            }
-
-            document.getElementById("pantalla-inicial").classList.add("hidden");
-
-            const transitionScreen = document.getElementById("transicion-zarpar");
-            const shoutText = transitionScreen.querySelector('.shout-text');
-            
-            transitionScreen.style.display = 'flex';
-            transitionScreen.classList.add("active");
-            shoutText.style.display = 'block';
-
-            setTimeout(() => {
-                transitionScreen.style.display = 'none';
-                transitionScreen.classList.remove("active");
-                shoutText.style.display = 'none';
-                
-                document.getElementById("pantalla-juego").classList.remove("hidden");
-                document.getElementById("ranking-parcial").classList.remove("hidden");
-                
-                const pp = document.getElementById("puntos-potenciales");
-                const ppSpan = document.getElementById("ppuntos");
-                if (modoActual === "bribon") {
-                    pp.classList.remove("hidden");
-                    ppSpan.textContent = (ronda * 10);
-                } else {
-                    pp.classList.add("hidden");
-                }
-                renderPiratas();
-                actualizarRankingParcial();
-                toggleRonShout(true); // Muestra el grito RON al iniciar
-            }, 1500);
-        }
-
-        // --- Render de tarjetas de cada jugador ---
-        function renderPiratas() {
-            const contenedor = document.getElementById("contenedorPiratas");
-            contenedor.innerHTML = "";
-            
-            // Determinar si los controles de Ganados y Bonificaciones deben estar deshabilitados
-            const isDisabled = (fase === "apuesta"); 
-            const disabledClass = isDisabled ? 'opacity-50 cursor-not-allowed' : '';
-
-            piratas.forEach((p, i) => {
-                const caja = document.createElement("div");
-                caja.className = "pirate-card bg-gray-200 bg-opacity-80 rounded-xl p-4 shadow-lg text-black";
-                caja.innerHTML = `
-                    <div class="mb-3">
-                        <span class="font-bold text-xl text-gray-900">🏴‍☠️ ${p.nombre}</span>
-                    </div>
-                    <div class="flex items-center justify-between mb-3 border-b pb-2 border-gray-300">
-                        <span class="text-gray-900 font-semibold w-1/3">Apuesta:</span>
-                        <div class="flex items-center gap-1 w-2/3 justify-end">
-                            <input type="number" id="apuesta-${i}" value="${p.apuesta || 0}" readonly
-                                class="w-10 p-1 text-center rounded bg-transparent font-bold text-lg">
-                            <button id="btn-apuesta-mas-${i}" onclick="sumarApuesta(${i})"
-                                class="px-2 py-1 text-white rounded bg-yellow-600 hover:bg-yellow-700 text-sm h-8 w-8 leading-none">+</button>
-                            <button id="btn-apuesta-menos-${i}" onclick="restarApuesta(${i})"
-                                class="px-2 py-1 text-white rounded bg-red-600 hover:bg-red-700 text-sm h-8 w-8 leading-none">-</button>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between mb-3 border-b pb-2 border-gray-300 ${disabledClass}">
-                        <span class="text-gray-900 font-semibold w-1/3">Ganados:</span>
-                        <div class="flex items-center gap-1 w-2/3 justify-end">
-                            <input type="number" id="ganados-${i}" value="${p.ganados || 0}" readonly
-                                class="w-10 p-1 text-center rounded bg-transparent font-bold text-lg">
-                            <button onclick="sumarGanado(${i})" 
-                                class="px-2 py-1 text-white rounded bg-green-600 hover:bg-green-700 text-sm h-8 w-8 leading-none"
-                                ${isDisabled ? 'disabled' : ''}>+</button>
-                            <button onclick="restarGanado(${i})" 
-                                class="px-2 py-1 text-white rounded bg-red-600 hover:bg-red-700 text-sm h-8 w-8 leading-none"
-                                ${isDisabled ? 'disabled' : ''}>-</button>
-                        </div>
-                    </div>
-
-                    <span class="text-gray-900 font-semibold block mb-1">Bonificaciones:</span>
-                    <div class="flex gap-2 mb-3 justify-between ${disabledClass}">
-                        <button id="14-verde-${i}" data-color="verde" data-index="${i}" onclick="toggle14(this)" 
-                            class="w-10 h-10 rounded ${p.c14.verde ? 'opacity-100' : 'opacity-40'} bg-green-500 text-white font-bold text-xs flex items-center justify-center"
-                            ${isDisabled ? 'disabled' : ''}>14 V</button>
-                        <button id="14-amarillo-${i}" data-color="amarillo" data-index="${i}" onclick="toggle14(this)" 
-                            class="w-10 h-10 rounded ${p.c14.amarillo ? 'opacity-100' : 'opacity-40'} bg-yellow-400 text-black font-bold text-xs flex items-center justify-center"
-                            ${isDisabled ? 'disabled' : ''}>14 A</button>
-                        <button id="14-morado-${i}" data-color="morado" data-index="${i}" onclick="toggle14(this)" 
-                            class="w-10 h-10 rounded ${p.c14.morado ? 'opacity-100' : 'opacity-40'} bg-purple-600 text-white font-bold text-xs flex items-center justify-center"
-                            ${isDisabled ? 'disabled' : ''}>14 M</button>
-                        <button id="14-negro-${i}" data-color="negro" data-index="${i}" onclick="toggle14(this)" 
-                            class="w-10 h-10 rounded ${p.c14.negro ? 'opacity-100' : 'opacity-40'} bg-black text-white font-bold text-xs flex items-center justify-center"
-                            ${isDisabled ? 'disabled' : ''}>14 N</button>
-                    </div>
-
-                    <div class="flex flex-col gap-2">
-                        <div class="flex items-center justify-between ${disabledClass}">
-                            <span class="text-gray-900 font-semibold">🧜 Sirena (+20):</span>
-                            <div class="flex items-center gap-1">
-                                <input type="number" id="sirena-count-${i}" value="${p.sirenaCount}" readonly
-                                    class="w-10 p-1 text-center rounded bg-transparent font-bold text-gray-900 text-lg">
-                                <button onclick="sumarPersonaje(${i}, 'sirena')" 
-                                    class="px-2 py-1 bg-blue-500 text-white rounded text-sm h-8 w-8 leading-none"
-                                    ${isDisabled ? 'disabled' : ''}>+</button>
-                                <button onclick="restarPersonaje(${i}, 'sirena')" 
-                                    class="px-2 py-1 bg-red-600 text-white rounded text-sm h-8 w-8 leading-none"
-                                    ${isDisabled ? 'disabled' : ''}>-</button>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between ${disabledClass}">
-                            <span class="text-gray-900 font-semibold">🏴‍☠️ Pirata (+30):</span>
-                            <div class="flex items-center gap-1">
-                                <input type="number" id="pirata-count-${i}" value="${p.pirataCount}" readonly
-                                    class="w-10 p-1 text-center rounded bg-transparent font-bold text-gray-900 text-lg">
-                                <button onclick="sumarPersonaje(${i}, 'pirata')" 
-                                    class="px-2 py-1 bg-blue-500 text-white rounded text-sm h-8 w-8 leading-none"
-                                    ${isDisabled ? 'disabled' : ''}>+</button>
-                                <button onclick="restarPersonaje(${i}, 'pirata')" 
-                                    class="px-2 py-1 bg-red-600 text-white rounded text-sm h-8 w-8 leading-none"
-                                    ${isDisabled ? 'disabled' : ''}>-</button>
-                            </div>
-                        </div>
-                        <button id="skull-btn-${i}" onclick="toggleUnico(this, ${i})" 
-                            class="px-3 py-2 bg-purple-700 rounded text-white font-bold mt-2 ${p.skullSelected ? 'opacity-100' : 'opacity-60'} ${disabledClass}"
-                            ${isDisabled ? 'disabled' : ''}>
-                            ${p.skullSelected ? '💀 Skull King (+40) ✓' : '💀 Skull King (+40)'}
-                        </button>
-                    </div>
-                `;
-                contenedor.appendChild(caja);
-            });
-            
-            // Mantenemos la lógica de bloqueo de apuestas, aunque los botones ya estén ocultos en el renderizado
-            if (fase === "resultado") {
-                bloquearApuestas();
-            } else {
-                desbloquearApuestas();
-            }
-            
-            toggleRonShout(fase === "apuesta"); // Asegura visibilidad del grito si es fase de apuesta
-
-            const ppSpan = document.getElementById("ppuntos");
-            if (modoActual === "bribon" && ppSpan) ppSpan.textContent = (ronda * 10);
-        }
-
-        // --- Funciones de control de apuestas / ganados ---
-        
-        /**
-         * Verifica que la suma de bazas ganadas por todos los jugadores no exceda el número de la ronda.
-         * @returns {number} La suma total actual de bazas ganadas.
-         */
-        function getTotalGanadosActual() {
-            let total = 0;
-            piratas.forEach((p, i) => {
-                const input = document.getElementById("ganados-" + i);
-                if (input) {
-                    total += parseInt(input.value) || 0;
-                }
-            });
-            return total;
-        }
-
-        function sumarApuesta(index) {
-            if (fase !== "apuesta") return;
-            const input = document.getElementById("apuesta-" + index);
-            let val = parseInt(input.value) || 0;
-            if (val < ronda) {
-                val++;
-                input.value = val;
-            } else {
-                alert(`⚠️ Apuesta máxima para esta ronda: ${ronda}`);
-            }
-        }
-
-        function restarApuesta(index) {
-            if (fase !== "apuesta") return;
-            const input = document.getElementById("apuesta-" + index);
-            if (parseInt(input.value) > 0) input.value = parseInt(input.value) - 1;
-        }
-
-        function sumarGanado(index) {
-            if (fase !== "resultado") return; // Bloqueo si no es fase de resultado
-            
-            const input = document.getElementById("ganados-" + index);
-            let valorActual = parseInt(input.value) || 0;
-
-            // 1. Validación de Ganados individuales (no exceder la ronda)
-            if (valorActual >= ronda) {
-                alert(`⚠️ No puedes registrar más ganados que la ronda actual (${ronda}).`);
-                return;
-            }
-
-            // 2. Validación de Suma Total (NO exceder la ronda)
-            const totalActual = getTotalGanadosActual();
-            if (totalActual >= ronda) { 
-                alert(`⚠️ ¡Alto! La suma total de bazas ganadas (${totalActual}) ya iguala el número de la ronda (${ronda}). No se puede añadir más.`);
-                return;
-            }
-
-            // Si pasa ambas validaciones
-            input.value = valorActual + 1;
-        }
-
-        function restarGanado(index) {
-            if (fase !== "resultado") return; // Bloqueo si no es fase de resultado
-            
-            const input = document.getElementById("ganados-" + index);
-            if (parseInt(input.value) > 0) input.value = parseInt(input.value) - 1;
-        }
-        
-        // --- Bonificaciones y UI Controls (Añadido bloqueo de fase) ---
-        function toggle14(btn) {
-            if (fase !== "resultado") return; // Bloqueo si no es fase de resultado
-            
-            btn.classList.toggle("opacity-40");
-            btn.classList.toggle("opacity-100");
-            const color = btn.getAttribute("data-color");
-            const idx = parseInt(btn.getAttribute("data-index"), 10);
-            if (!isNaN(idx) && piratas[idx]) {
-                piratas[idx].c14[color] = btn.classList.contains("opacity-100");
-            }
-        }
-
-        function sumarPersonaje(index, tipo) {
-            if (fase !== "resultado") return; // Bloqueo si no es fase de resultado
-            
-            const p = piratas[index];
-            if (!p) return;
-            if (tipo === "sirena") {
-                if (p.sirenaCount >= 4) { alert("Máximo 4 sirenas."); return; }
-                p.sirenaCount++;
-                document.getElementById(`sirena-count-${index}`).value = p.sirenaCount;
-            } else if (tipo === "pirata") {
-                if (p.pirataCount >= 4) { alert("Máximo 4 piratas."); return; }
-                p.pirataCount++;
-                document.getElementById(`pirata-count-${index}`).value = p.pirataCount;
-            }
-        }
-
-        function restarPersonaje(index, tipo) {
-            if (fase !== "resultado") return; // Bloqueo si no es fase de resultado
-            
-            const p = piratas[index];
-            if (!p) return;
-            if (tipo === "sirena") {
-                if (p.sirenaCount > 0) {
-                    p.sirenaCount--;
-                    document.getElementById(`sirena-count-${index}`).value = p.sirenaCount;
-                }
-            } else if (tipo === "pirata") {
-                if (p.pirataCount > 0) {
-                    p.pirataCount--;
-                    document.getElementById(`pirata-count-${index}`).value = p.pirataCount;
-                }
-            }
-        }
-
-        function toggleUnico(btn, index) {
-            if (fase !== "resultado") return; // Bloqueo si no es fase de resultado
-            
-            btn.classList.toggle("opacity-60");
-            btn.classList.toggle("opacity-100");
-            if (piratas[index]) {
-                const isSelected = btn.classList.contains("opacity-100");
-                piratas[index].skullSelected = isSelected;
-                btn.textContent = isSelected ? '💀 Skull King (+40) ✓' : '💀 Skull King (+40)';
-            }
-        }
-
-        function bloquearApuestas() {
-            piratas.forEach((p, i) => {
-                const b1 = document.getElementById(`btn-apuesta-mas-${i}`);
-                const b2 = document.getElementById(`btn-apuesta-menos-${i}`);
-                if (b1) b1.classList.add("hidden");
-                if (b2) b2.classList.add("hidden");
-            });
-        }
-
-        function desbloquearApuestas() {
-            piratas.forEach((p, i) => {
-                const b1 = document.getElementById(`btn-apuesta-mas-${i}`);
-                const b2 = document.getElementById(`btn-apuesta-menos-${i}`);
-                if (b1) b1.classList.remove("hidden");
-                if (b2) b2.classList.remove("hidden");
-            });
-        }
-
-        // --- Fases de Juego ---
-        function confirmarApuestas() {
-            modoActual = document.querySelector('input[name="modo"]:checked')?.value || "skull";
-            let valido = true;
-            
-            piratas.forEach((p, i) => {
-                const apuesta = parseInt(document.getElementById(`apuesta-${i}`).value) || 0;
-                if (apuesta > ronda) {
-                    alert(`⚠️ ${p.nombre}: la apuesta no puede ser mayor que la ronda (${ronda})`);
-                    valido = false;
-                }
-                p.apuesta = apuesta;
-            });
-            
-            if (!valido) return;
-
-            document.getElementById("btn-apuesta").classList.add("hidden");
-            document.getElementById("btn-resultados").classList.remove("hidden");
-            fase = "resultado";
-            
-            // RE-RENDERIZAR PARA HABILITAR GANADOS Y BONIFICACIONES
-            renderPiratas(); 
-            // *************************************************
-
-            toggleRonShout(false); 
-        }
-
-        function confirmarResultados() {
-            
-            // 1. Asegurar que todos los campos de ganados se sincronicen con el objeto pirata antes de la validación.
-            piratas.forEach((p, i) => {
-                p.ganados = parseInt(document.getElementById(`ganados-${i}`).value) || 0;
-            });
-
-            const totalGanados = getTotalGanadosActual();
-            
-            // ************ VALIDACIÓN CORREGIDA POR KRAKEN ************
-            // La suma total debe ser igual al número de la ronda (R) O igual a (R - 1)
-            // (La regla del Kraken).
-            if (totalGanados !== ronda && totalGanados !== (ronda - 1)) {
-                
-                let mensaje = `⚠️ ¡ALERTA PIRATA! La suma total de bazas ganadas es ${totalGanados} y debe ser:`;
-                if (ronda > 0) {
-                     mensaje += `\n- **Exactamente ${ronda}** (si se jugaron todas las bazas), O`;
-                     // Solo mostramos la opción R-1 si la ronda es > 0, porque no puedes tener bazas negativas.
-                     mensaje += `\n- **Exactamente ${ronda - 1}** (si una baza fue anulada por el Kraken).`;
-                } else { 
-                     // Caso extremo de ronda 0 (no debería pasar)
-                     mensaje += `\n- **Exactamente ${ronda}** (0).`;
-                }
-
-                alert(mensaje + "\n\nAjusta las bazas antes de confirmar.");
-                return;
-            }
-            // ************ FIN DE VALIDACIÓN CORREGIDA POR KRAKEN ************
-            
-            // Continuar con el cálculo de puntos solo si la validación es correcta
-            if (modoActual === "bribon") {
-                confirmarResultadosBribon();
-            } else {
-                confirmarResultadosSkull();
-            }
-            document.getElementById("btn-resultados").classList.add("hidden");
-            document.getElementById("btn-siguiente").classList.remove("hidden");
-            actualizarRankingParcial();
-            
-            // Bloquea los campos después de la confirmación (aunque en la siguiente ronda se re-renderizarán)
-            fase = "puntuacion_finalizada"; 
-            renderPiratas();
-        }
-
-        function confirmarResultadosSkull() {
-            piratas.forEach((p, i) => {
-                // p.ganados ya está actualizado desde confirmarResultados()
-                let puntosRonda = 0;
-
-                // 1. Apuesta/Ganados
-                if (p.apuesta === p.ganados) {
-                    if (p.apuesta === 0) puntosRonda += 10 * ronda;
-                    else puntosRonda += 20 * p.apuesta;
-                } else {
-                    if (p.apuesta === 0) puntosRonda -= 10 * ronda;
-                    else puntosRonda -= 10 * Math.abs(p.apuesta - p.ganados);
-                }
-
-                // 2. Bonificaciones
-                puntosRonda += (p.c14.verde ? 10 : 0);
-                puntosRonda += (p.c14.amarillo ? 10 : 0);
-                puntosRonda += (p.c14.morado ? 10 : 0);
-                puntosRonda += (p.c14.negro ? 20 : 0);
-                puntosRonda += (p.sirenaCount * 20);
-                puntosRonda += (p.pirataCount * 30);
-                if (p.skullSelected) puntosRonda += 40;
-
-                p.puntos += puntosRonda;
-            });
-        }
-
-        function confirmarResultadosBribon() {
-            const potential = ronda * 10;
-            piratas.forEach((p, i) => {
-                // p.ganados ya está actualizado desde confirmarResultados()
-                const diff = Math.abs(p.apuesta - p.ganados);
-                let puntosRonda = 0;
-
-                if (diff === 0) {
-                    puntosRonda += potential;
-                    puntosRonda += (p.c14.verde ? 10 : 0);
-                    puntosRonda += (p.c14.amarillo ? 10 : 0);
-                    puntosRonda += (p.c14.morado ? 10 : 0);
-                    puntosRonda += (p.c14.negro ? 20 : 0);
-                    puntosRonda += (p.sirenaCount * 20);
-                    puntosRonda += (p.pirataCount * 30);
-                    if (p.skullSelected) puntosRonda += 40;
-                } else if (diff === 1) {
-                    puntosRonda += Math.round(potential / 2);
-                } else {
-                    puntosRonda += 0;
-                }
-                p.puntos += puntosRonda;
-            });
-        }
-
-        function siguienteRonda() {
-            if (ronda >= 10) {
-                // Transición Final (TIERRA A LA VISTA)
-                document.getElementById("pantalla-juego").classList.add("hidden");
-
-                const transitionScreen = document.getElementById("transicion-cofre");
-                const shoutText = transitionScreen.querySelector('.shout-text');
-                
-                transitionScreen.style.display = 'flex';
-                transitionScreen.classList.add("active");
-                shoutText.style.display = 'block';
-
-                setTimeout(() => {
-                    transitionScreen.style.display = 'none';
-                    transitionScreen.classList.remove("active");
-                    shoutText.style.display = 'none';
-                    
-                    mostrarRanking(); 
-                }, 1500);
-
-                return;
-            }
-            
-            // Siguiente Ronda (1 a 9)
-            ronda++;
-            fase = "apuesta";
-            document.getElementById("ronda-actual").textContent = ronda;
-
-            document.getElementById("btn-siguiente").classList.add("hidden");
-            document.getElementById("btn-apuesta").classList.remove("hidden");
-
-            // Resetear datos de ronda
-            piratas.forEach(p => {
-                p.sirenaCount = 0; p.pirataCount = 0; p.skullSelected = false;
-                p.c14 = { verde: false, amarillo: false, morado: false, negro: false };
-                p.apuesta = 0; p.ganados = 0;
-            });
-
-            // RE-RENDERIZAR PARA DESHABILITAR GANADOS/BONIFICACIONES Y HABILITAR APUESTAS
-            renderPiratas(); 
-            // *************************************************
-
-            toggleRonShout(true); // Muestra el grito RON para la nueva apuesta
-
-            const ppSpan = document.getElementById("ppuntos");
-            if (modoActual === "bribon" && ppSpan) {
-                document.getElementById("puntos-potenciales").classList.remove("hidden");
-                ppSpan.textContent = (ronda * 10);
-            } else if (ppSpan) {
-                 document.getElementById("puntos-potenciales").classList.add("hidden");
-            }
-
-            actualizarRankingParcial();
-        }
-
-        // --- Ranking ---
-        function actualizarRankingParcial() {
-            const tbody = document.getElementById("tablaParcial");
-            tbody.innerHTML = "";
-            piratas.slice().sort((a, b) => b.puntos - a.puntos).forEach((p, i) => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="px-2 py-1">${i+1}</td>
-                        <td class="px-2 py-1">${p.nombre}</td>
-                        <td class="px-2 py-1 text-right font-bold">${p.puntos}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        function mostrarRanking() {
-            document.getElementById("pantalla-final").classList.remove("hidden");
-            const tbody = document.getElementById("tablaRanking");
-            tbody.innerHTML = "";
-            piratas.sort((a, b) => b.puntos - a.puntos).forEach((p, i) => {
-                let medalla = "";
-                if (i === 0) medalla = "🥇";
-                else if (i === 1) medalla = "🥈";
-                else if (i === 2) medalla = "🥉";
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="px-4 py-2">${i+1} ${medalla}</td>
-                        <td class="px-4 py-2">${p.nombre}</td>
-                        <td class="px-4 py-2 text-right font-bold">${p.puntos}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        // --- Reiniciar Juego ---
-        function reiniciarJuego() {
-            if (!confirm("¿Seguro que quieres salir y reiniciar el marcador?")) return;
-
-            ronda = 1; fase = "apuesta"; modoActual = "skull";
-            piratas.forEach(p => {
-                p.puntos = 0; p.apuesta = 0; p.ganados = 0;
-                p.sirenaCount = 0; p.pirataCount = 0; p.skullSelected = false;
-                p.c14 = { verde: false, amarillo: false, morado: false, negro: false };
-            });
-
-            const rondaEl = document.getElementById("ronda-actual");
-            if (rondaEl) rondaEl.textContent = ronda;
-            
-            document.getElementById("btn-apuesta").classList.remove("hidden");
-            document.getElementById("btn-resultados").classList.add("hidden");
-            document.getElementById("btn-siguiente").classList.add("hidden");
-            
-            document.getElementById("pantalla-final").classList.add("hidden");
-            document.getElementById("pantalla-juego").classList.add("hidden");
-            document.getElementById("pantalla-inicial").classList.remove("hidden");
-            
-            const ranking = document.getElementById("ranking-parcial");
-            if (ranking) ranking.classList.add("hidden");
-            
-            const pp = document.getElementById("puntos-potenciales");
-            if (pp) pp.classList.add("hidden");
-            
-            toggleRonShout(false); // Asegura que el grito RON esté oculto
-
-            actualizarLista();
-        }
-        
-        // Inicial
-        actualizarLista();
+      function cerrarReglas() {
+        document.getElementById('modalReglas').classList.add('hidden');
+      }
     </script>
-	<script>
-(function () {
-  let startY = 0;
-
-  document.addEventListener('touchstart', function (e) {
-    startY = e.touches[0].clientY;
-  }, { passive: false });
-
-  document.addEventListener('touchmove', function (e) {
-    const currentY = e.touches[0].clientY;
-    const isPullingDown = currentY > startY;
-
-    if (window.scrollY === 0 && isPullingDown) {
-      e.preventDefault();
-    }
-  }, { passive: false });
-})();
-</script>
-
-    </body>
+    <script>
+      (function() {
+        let startY = 0;
+        document.addEventListener('touchstart', function(e) {
+          startY = e.touches[0].clientY;
+        }, {
+          passive: false
+        });
+        document.addEventListener('touchmove', function(e) {
+          const currentY = e.touches[0].clientY;
+          const isPullingDown = currentY > startY;
+          if (window.scrollY === 0 && isPullingDown) {
+            e.preventDefault();
+          }
+        }, {
+          passive: false
+        });
+      })();
+    </script>
+    <!-- OVERLAY NUEVA RONDA -->
+    <div id="overlayRonda" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+      <div id="textoRonda" class="text-yellow-300 text-5xl font-extrabold scale-75 opacity-0 transition-all duration-500"> RONDA 1 </div>
+    </div>
+  </body>
 </html>
